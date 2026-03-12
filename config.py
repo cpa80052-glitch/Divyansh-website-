@@ -1,0 +1,7 @@
+BOT_TOKEN = "PUT_YOUR_BOT_TOKEN"
+
+ADMIN_ID = 123456789
+
+SITE_NAME = "Study With DS"
+
+CREATOR = "Divyansh Shukla"
