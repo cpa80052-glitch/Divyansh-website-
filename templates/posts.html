@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+
+<link rel="stylesheet" href="/static/style.css">
+
+<body>
+
+<div class="navbar">
+
+<img src="/static/logo.png" height="50">
+
+<h2>Study With DS</h2>
+
+</div>
+
+<div class="grid">
+
+{% for post in posts %}
+
+<div class="card">
+
+{% if post.type == "video" %}
+
+<video controls width="300">
+<source src="{{post.url}}">
+</video>
+
+{% else %}
+
+<img src="{{post.url}}" width="300">
+
+{% endif %}
+
+</div>
+
+{% endfor %}
+
+</div>
+
+</body>
+
+</html>
