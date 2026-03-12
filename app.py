@@ -1,7 +1,7 @@
 from flask import Flask, render_template
 import json
 
-app = Flask(name)
+app = Flask(__name__)
 
 def load_posts():
     try:
