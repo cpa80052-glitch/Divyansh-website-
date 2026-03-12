@@ -1,7 +1,0 @@
-BOT_TOKEN = "8203995752:AAF0vRqTCbqky0u0KTJ_h4POApfYmv4uaH4"
-
-ADMIN_ID = 6334323103
-
-SITE_NAME = "Study With DS"
-
-CREATOR = "Divyansh Shukla"
