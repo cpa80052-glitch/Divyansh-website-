@@ -22,6 +22,3 @@ def home():
 def posts():
     posts = load_posts()
     return render_template("posts.html", posts=posts)
-
-if name == "main":
-    app.run()
