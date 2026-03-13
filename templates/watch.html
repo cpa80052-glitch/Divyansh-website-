@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{post.title}} - VideoHub</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="watch-page">
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <a href="/posts" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+            <div class="logo">
+                <i class="fas fa-play-circle"></i>
+                <span>VideoHub</span>
+            </div>
+        </div>
+        <div class="nav-center">
+            <div class="search-box">
+                <input type="text" placeholder="Search...">
+                <button><i class="fas fa-search"></i></button>
+            </div>
+        </div>
+        <div class="nav-right">
+            <a href="/chat" class="nav-btn"><i class="fas fa-comments"></i></a>
+            <div class="user-avatar">D</div>
+        </div>
+    </nav>
+
+    <div class="watch-container">
+        <!-- Main Video Section -->
+        <div class="video-section">
+            <div class="video-player-container">
+                {% if post.type == "video" %}
+                <video id="mainVideo" controls autoplay poster="/{{post.file}}#t=1">
+                    <source src="/{{post.file}}" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+                {% elif post.type == "photo" %}
+                <img src="/{{post.file}}" class="main-image" alt="{{post.title}}">
+                {% endif %}
+            </div>
+
+            <div class="video-meta">
+                <h1 class="video-title-large">{{post.title}}</h1>
+                <div class="video-stats-bar">
+                    <div class="views-time">
+                        <span>{{post.views or 0}} views</span>
+                        <span>•</span>
+                        <span>{{post.time}}</span>
+                    </div>
+                    <div class="action-buttons">
+                        <button class="action-btn" onclick="likeVideo({{post.id}})">
+                            <i class="fas fa-thumbs-up"></i>
+                            <span id="likeCount">{{post.likes or 0}}</span>
+                        </button>
+                        <button class="action-btn">
+                            <i class="fas fa-thumbs-down"></i>
+                        </button>
+                        <button class="action-btn">
+                            <i class="fas fa-share"></i> Share
+                        </button>
+                        <button class="action-btn">
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                        <button class="action-btn">
+                            <i class="fas fa-ellipsis-h"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="channel-info">
+                    <div class="channel-left">
+                        <div class="channel-avatar-large">{{post.uploader[0] if post.uploader else 'U'}}</div>
+                        <div class="channel-details">
+                            <h3>{{post.uploader or 'Unknown Creator'}}</h3>
+                            <p>1.2K subscribers</p>
+                        </div>
+                    </div>
+                    <button class="subscribe-btn">SUBSCRIBE</button>
+                </div>
+
+                <div class="description-box">
+                    <p>{{post.description}}</p>
+                </div>
+
+                <!-- Comments Section -->
+                <div class="comments-section">
+                    <h3>{{post.comments|length if post.comments else 0}} Comments</h3>
+                    
+                    <div class="comment-input">
+                        <div class="user-avatar">D</div>
+                        <div class="input-wrapper">
+                            <input type="text" id="commentText" placeholder="Add a comment...">
+                            <button onclick="postComment({{post.id}})">Post</button>
+                        </div>
+                    </div>
+
+                    <div class="comments-list" id="commentsList">
+                        {% for comment in post.comments %}
+                        <div class="comment">
+                            <div class="comment-avatar">{{comment.user[0]}}</div>
+                            <div class="comment-content">
+                                <div class="comment-header">
+                                    <span class="comment-user">{{comment.user}}</span>
+                                    <span class="comment-time">{{comment.time}}</span>
+                                </div>
+                                <p class="comment-text">{{comment.text}}</p>
+                                <div class="comment-actions">
+                                    <button><i class="fas fa-thumbs-up"></i></button>
+                                    <button><i class="fas fa-thumbs-down"></i></button>
+                                    <button>Reply</button>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar Recommendations -->
+        <aside class="recommendations">
+            <h3>Up next</h3>
+            {% for p in posts if p.id != post.id %}
+            <div class="rec-card" onclick="window.location.href='/watch/{{p.id}}'">
+                <div class="rec-thumbnail">
+                    {% if p.type == "video" %}
+                    <video preload="metadata"><source src="/{{p.file}}#t=0.5" type="video/mp4"></video>
+                    {% elif p.type == "photo" %}
+                    <img src="/{{p.file}}">
+                    {% endif %}
+                    <span class="rec-duration">8:45</span>
+                </div>
+                <div class="rec-info">
+                    <h4>{{p.title}}</h4>
+                    <p>{{p.uploader or 'Unknown'}}</p>
+                    <p>{{p.views or 0}} views</p>
+                </div>
+            </div>
+            {% endfor %}
+        </aside>
+    </div>
+
+    <script>
+        function likeVideo(id) {
+            fetch("/like/" + id, {method: "POST"})
+                .then(r => r.json())
+                .then(data => {
+                    if(data.ok) {
+                        document.getElementById('likeCount').textContent = data.likes;
+                    }
+                });
+        }
+
+        function postComment(id) {
+            const text = document.getElementById('commentText').value;
+            if(!text) return;
+            
+            fetch("/comment/" + id, {
+                method: "POST",
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({user: "You", text: text})
+            }).then(() => location.reload());
+        }
+    </script>
+</body>
+</html>

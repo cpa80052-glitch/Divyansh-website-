@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Messages - VideoHub</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body class="chat-page">
+    <div class="chat-container">
+        <!-- Sidebar - Chat List -->
+        <aside class="chat-sidebar">
+            <div class="chat-header">
+                <h2>Chats</h2>
+                <div class="header-actions">
+                    <button onclick="startCall('video')"><i class="fas fa-video"></i></button>
+                    <button onclick="startCall('audio')"><i class="fas fa-phone"></i></button>
+                </div>
+            </div>
+            
+            <div class="search-chats">
+                <i class="fas fa-search"></i>
+                <input type="text" placeholder="Search or start new chat">
+            </div>
+
+            <div class="chat-list">
+                <div class="chat-item active">
+                    <div class="chat-avatar">G</div>
+                    <div class="chat-preview">
+                        <div class="chat-row">
+                            <h4>General Group</h4>
+                            <span class="time">12:30</span>
+                        </div>
+                        <p>Check out the new video! 📹</p>
+                    </div>
+                </div>
+                
+                <div class="chat-item">
+                    <div class="chat-avatar">A</div>
+                    <div class="chat-preview">
+                        <div class="chat-row">
+                            <h4>Admin</h4>
+                            <span class="time">11:45</span>
+                        </div>
+                        <p>Video uploaded successfully</p>
+                    </div>
+                </div>
+
+                <div class="chat-item">
+                    <div class="chat-avatar">B</div>
+                    <div class="chat-preview">
+                        <div class="chat-row">
+                            <h4>Bot Updates</h4>
+                            <span class="time">Yesterday</span>
+                        </div>
+                        <p>New post from Telegram</p>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main class="chat-main">
+            <div class="chat-navbar">
+                <div class="chat-user-info">
+                    <div class="chat-avatar-large">G</div>
+                    <div>
+                        <h3>General Group</h3>
+                        <p>online</p>
+                    </div>
+                </div>
+                <div class="chat-actions">
+                    <button onclick="startCall('video')"><i class="fas fa-video"></i></button>
+                    <button onclick="startCall('audio')"><i class="fas fa-phone"></i></button>
+                    <button><i class="fas fa-ellipsis-v"></i></button>
+                </div>
+            </div>
+
+            <div class="messages-container" id="messages">
+                <div class="date-separator">Today</div>
+                
+                <div class="message received">
+                    <div class="message-bubble">
+                        <p>Hey! Check out this new video I just uploaded 🎬</p>
+                        <span class="message-time">12:25 PM</span>
+                    </div>
+                </div>
+
+                <div class="message sent">
+                    <div class="message-bubble">
+                        <p>Wow, looks amazing! The quality is great 👍</p>
+                        <span class="message-time">12:28 PM <i class="fas fa-check-double seen"></i></span>
+                    </div>
+                </div>
+
+                <div class="message received">
+                    <div class="message-bubble video-share">
+                        <div class="shared-video">
+                            <img src="/static/thumb.jpg" alt="Video">
+                            <div class="play-btn"><i class="fas fa-play"></i></div>
+                            <div class="video-info">
+                                <p>My New Vlog 2024</p>
+                                <span>YouTube • VideoHub</span>
+                            </div>
+                        </div>
+                        <p>Direct link to the post</p>
+                        <span class="message-time">12:30 PM</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="chat-input-area">
+                <button class="emoji-btn"><i class="fas fa-smile"></i></button>
+                <button class="attach-btn"><i class="fas fa-paperclip"></i></button>
+                <div class="input-wrapper">
+                    <input type="text" id="messageInput" placeholder="Type a message...">
+                </div>
+                <button class="voice-btn" id="voiceBtn"><i class="fas fa-microphone"></i></button>
+                <button class="send-btn" id="sendBtn" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Call Overlay -->
+    <div class="call-overlay" id="callOverlay" style="display: none;">
+        <div class="call-container">
+            <div class="call-background"></div>
+            <div class="call-content">
+                <div class="call-avatar">G</div>
+                <h2>General Group</h2>
+                <p id="callStatus">Calling...</p>
+                
+                <div class="call-timer" id="callTimer" style="display: none;">00:00</div>
+                
+                <div class="call-controls">
+                    <button class="call-btn mute"><i class="fas fa-microphone-slash"></i></button>
+                    <button class="call-btn video-toggle"><i class="fas fa-video-slash"></i></button>
+                    <button class="call-btn speaker"><i class="fas fa-volume-up"></i></button>
+                    <button class="call-btn end" onclick="endCall()"><i class="fas fa-phone-slash"></i></button>
+                </div>
+            </div>
+            
+            <!-- Local Video (for video call) -->
+            <video id="localVideo" class="local-video" autoplay muted playsinline></video>
+        </div>
+    </div>
+
+    <script>
+        let localStream = null;
+        let callInterval = null;
+        let seconds = 0;
+
+        // Toggle between voice and text input
+        const messageInput = document.getElementById('messageInput');
+        const voiceBtn = document.getElementById('voiceBtn');
+        const sendBtn = document.getElementById('sendBtn');
+
+        messageInput.addEventListener('input', () => {
+            if(messageInput.value.trim()) {
+                voiceBtn.style.display = 'none';
+                sendBtn.style.display = 'flex';
+            } else {
+                voiceBtn.style.display = 'flex';
+                sendBtn.style.display = 'none';
+            }
+        });
+
+        function sendMessage() {
+            const text = messageInput.value.trim();
+            if(!text) return;
+            
+            const messages = document.getElementById('messages');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = 'message sent';
+            msgDiv.innerHTML = `
+                <div class="message-bubble">
+                    <p>${text}</p>
+                    <span class="message-time">${new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})} <i class="fas fa-check"></i></span>
+                </div>
+            `;
+            messages.appendChild(msgDiv);
+            messages.scrollTop = messages.scrollHeight;
+            messageInput.value = '';
+            voiceBtn.style.display = 'flex';
+            sendBtn.style.display = 'none';
+        }
+
+        messageInput.addEventListener('keypress', (e) => {
+            if(e.key === 'Enter') sendMessage();
+        });
+
+        // Call functionality
+        async function startCall(type) {
+            const overlay = document.getElementById('callOverlay');
+            const status = document.getElementById('callStatus');
+            const timer = document.getElementById('callTimer');
+            
+            overlay.style.display = 'flex';
+            overlay.className = 'call-overlay ' + type + '-call';
+            
+            try {
+                localStream = await navigator.mediaDevices.getUserMedia({ 
+                    video: type === 'video', 
+                    audio: true 
+                });
+                
+                if(type === 'video') {
+                    document.getElementById('localVideo').srcObject = localStream;
+                }
+                
+                // Simulate connected
+                setTimeout(() => {
+                    status.textContent = type === 'video' ? 'Video call' : 'Voice call';
+                    timer.style.display = 'block';
+                    startTimer();
+                }, 2000);
+                
+            } catch(err) {
+                console.error('Error accessing media:', err);
+                alert('Could not access camera/microphone');
+            }
+        }
+
+        function startTimer() {
+            seconds = 0;
+            callInterval = setInterval(() => {
+                seconds++;
+                const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+                const secs = (seconds % 60).toString().padStart(2, '0');
+                document.getElementById('callTimer').textContent = `${mins}:${secs}`;
+            }, 1000);
+        }
+
+        function endCall() {
+            if(localStream) {
+                localStream.getTracks().forEach(track => track.stop());
+                localStream = null;
+            }
+            if(callInterval) {
+                clearInterval(callInterval);
+                callInterval = null;
+            }
+            document.getElementById('callOverlay').style.display = 'none';
+            document.getElementById('callTimer').style.display = 'none';
+            document.getElementById('callStatus').textContent = 'Calling...';
+        }
+
+        // Voice message recording
+        let mediaRecorder = null;
+        let audioChunks = [];
+
+        voiceBtn.addEventListener('mousedown', startRecording);
+        voiceBtn.addEventListener('mouseup', stopRecording);
+        voiceBtn.addEventListener('touchstart', startRecording);
+        voiceBtn.addEventListener('touchend', stopRecording);
+
+        async function startRecording(e) {
+            e.preventDefault();
+            voiceBtn.classList.add('recording');
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.start();
+            } catch(err) {
+                console.error('Recording failed:', err);
+            }
+        }
+
+        function stopRecording(e) {
+            e.preventDefault();
+            voiceBtn.classList.remove('recording');
+            if(mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+                mediaRecorder.onstop = () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+                    // Here you would send the audio to server
+                    console.log('Voice message recorded:', audioBlob.size, 'bytes');
+                };
+            }
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Hub - Explore</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-left">
+            <i class="fas fa-bars menu-icon"></i>
+            <div class="logo">
+                <i class="fas fa-play-circle"></i>
+                <span>VideoHub</span>
+            </div>
+        </div>
+        <div class="nav-center">
+            <div class="search-box">
+                <input type="text" placeholder="Search videos...">
+                <button><i class="fas fa-search"></i></button>
+            </div>
+        </div>
+        <div class="nav-right">
+            <a href="/chat" class="nav-btn"><i class="fas fa-comments"></i></a>
+            <a href="/chat?call=1" class="nav-btn"><i class="fas fa-phone"></i></a>
+            <div class="user-avatar">D</div>
+        </div>
+    </nav>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <a href="/home" class="nav-item"><i class="fas fa-home"></i> Home</a>
+        <a href="/posts" class="nav-item active"><i class="fas fa-compass"></i> Explore</a>
+        <a href="#" class="nav-item"><i class="fas fa-fire"></i> Trending</a>
+        <a href="/chat" class="nav-item"><i class="fas fa-comment-dots"></i> Messages</a>
+        <hr>
+        <a href="#" class="nav-item"><i class="fas fa-history"></i> History</a>
+        <a href="#" class="nav-item"><i class="fas fa-thumbs-up"></i> Liked Videos</a>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="filters">
+            <button class="filter-btn active">All</button>
+            <button class="filter-btn">Videos</button>
+            <button class="filter-btn">Photos</button>
+            <button class="filter-btn">Live</button>
+            <button class="filter-btn">Music</button>
+        </div>
+
+        <div class="video-grid">
+            {% for p in posts %}
+            <div class="video-card" onclick="window.location.href='/watch/{{p.id}}'">
+                <div class="thumbnail">
+                    {% if p.type == "video" %}
+                    <video preload="metadata">
+                        <source src="/{{p.file}}#t=0.5" type="video/mp4">
+                    </video>
+                    <div class="play-overlay"><i class="fas fa-play"></i></div>
+                    <span class="duration">12:34</span>
+                    {% elif p.type == "photo" %}
+                    <img src="/{{p.file}}" alt="{{p.title}}">
+                    {% else %}
+                    <div class="text-thumbnail">
+                        <i class="fas fa-align-left"></i>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="video-info">
+                    <div class="channel-avatar">{{p.uploader[0] if p.uploader else 'U'}}</div>
+                    <div class="video-details">
+                        <h3 class="video-title">{{p.title}}</h3>
+                        <p class="channel-name">{{p.uploader or 'Unknown'}} • {{p.views or 0}} views • {{p.time}}</p>
+                        <div class="video-stats">
+                            <span><i class="fas fa-heart"></i> {{p.likes or 0}}</span>
+                            <span><i class="fas fa-comment"></i> {{p.comments|length if p.comments else 0}}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </main>
+
+    <!-- Bottom Mobile Nav -->
+    <nav class="mobile-nav">
+        <a href="/home"><i class="fas fa-home"></i></a>
+        <a href="/posts" class="active"><i class="fas fa-compass"></i></a>
+        <a href="/chat"><i class="fas fa-plus-circle"></i></a>
+        <a href="/chat"><i class="fas fa-comment"></i></a>
+        <a href="#"><i class="fas fa-user"></i></a>
+    </nav>
+</body>
+</html>
